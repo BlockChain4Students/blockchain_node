@@ -10,14 +10,25 @@ class Block:
         self.data = data
         self.previousHash = ""
         self.currentHash = ""
+        self.nonce = 0
 
     def calculate_hash(self):
-        hash_str = str(self.index) + self.timestamp + self.data + self.previousHash
+        hash_str = str(self.index) + self.timestamp + self.data + self.previousHash + str(self.nonce)
         hash_res = hashlib.sha256(hash_str.encode())
         return hash_res.hexdigest()
 
     def set_hash(self, hash_code):
         self.currentHash = hash_code
+
+    # Proof-of-work
+    def mine_block(self, difficulty):
+        compare_str = "".join((["0"] * difficulty))
+
+        while self.currentHash[0:difficulty] != compare_str:
+            self.nonce += 1
+            self.currentHash = self.calculate_hash()
+
+        print("Block mined:", self.currentHash)
 
     def print_self(self):
         print("Block with index: ", self.index)
@@ -32,10 +43,12 @@ class Blockchain:
 
     def __init__(self):
         self.chain = [self.calculate_gen_block()]
+        self.difficulty = 5  # Determines how long it takes to calculate proof-of-work
 
     def calculate_gen_block(self):
         gen_block = Block(0, "12/23/2018, 04:59:31", "importantData")
         gen_block.set_hash(gen_block.calculate_hash())
+        gen_block.previousHash = "0"
         return gen_block
 
     def get_latest_block(self):
@@ -43,7 +56,7 @@ class Blockchain:
 
     def add_block(self, new_block):
         new_block.previousHash = self.get_latest_block().currentHash
-        new_block.currentHash = new_block.calculate_hash()
+        new_block.mine_block(self.difficulty)
         self.chain.append(new_block)
 
     def is_chain_valid(self):
@@ -66,6 +79,8 @@ class Blockchain:
             bl.print_self()
 
 
+
+
 ########################################################################################################################
 
 
@@ -73,17 +88,21 @@ blockchain = Blockchain()
 
 block1 = Block(1, "12/24/2018, 04:59:31", "importantData2")
 block2 = Block(2, "12/25/2018, 04:59:31", "importantData3")
+
+print("Mining block 1...")
 blockchain.add_block(block1)
+
+print("Mining block 2...")
 blockchain.add_block(block2)
 
-blockchain.print_chain()
 print("Is chain valid? ", blockchain.is_chain_valid())
 
 print("Tampering block1's data...")
 block1.data = "DifferentData"
 
+print("Is chain valid? ", blockchain.is_chain_valid())
+
 print("Tampering block1's hash...")
 block1.set_hash(block1.calculate_hash())
 
-blockchain.print_chain()
 print("Is chain valid? ", blockchain.is_chain_valid())
