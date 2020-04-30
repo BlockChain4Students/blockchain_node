@@ -2,18 +2,24 @@ import hashlib
 from datetime import datetime
 
 
+class Transaction:
+    def __init__(self, from_address, to_address, amount):
+        self.fromAddress = from_address
+        self.toAddress = to_address
+        self.amount = amount
+
+
 class Block:
 
-    def __init__(self, index, timestamp, data):
-        self.index = index
+    def __init__(self, timestamp, transactions):
         self.timestamp = timestamp
-        self.data = data
+        self.transactions = transactions
         self.previousHash = ""
         self.currentHash = ""
         self.nonce = 0
 
     def calculate_hash(self):
-        hash_str = str(self.index) + self.timestamp + self.data + self.previousHash + str(self.nonce)
+        hash_str = self.timestamp + str(self.transactions) + self.previousHash + str(self.nonce)
         hash_res = hashlib.sha256(hash_str.encode())
         return hash_res.hexdigest()
 
@@ -31,9 +37,8 @@ class Block:
         print("Block mined:", self.currentHash)
 
     def print_self(self):
-        print("Block with index: ", self.index)
         print(self.timestamp)
-        print(self.data)
+        print(self.transactions)
         print("Previous hash: ", self.previousHash)
         print("Current hash: ", self.currentHash)
         print()
@@ -43,10 +48,12 @@ class Blockchain:
 
     def __init__(self):
         self.chain = [self.calculate_gen_block()]
-        self.difficulty = 5  # Determines how long it takes to calculate proof-of-work
+        self.difficulty = 2  # Determines how long it takes to calculate proof-of-work
+        self.pending_transactions = []  # Due to proof-of-work phase
+        self.miningReward = 100  # Reward if a new block is successfully mined
 
     def calculate_gen_block(self):
-        gen_block = Block(0, "12/23/2018, 04:59:31", "importantData")
+        gen_block = Block(datetime.now().strftime("%m/%d/%Y, %H:%M:%S"), Transaction(None, " ", 0))
         gen_block.set_hash(gen_block.calculate_hash())
         gen_block.previousHash = "0"
         return gen_block
@@ -54,10 +61,44 @@ class Blockchain:
     def get_latest_block(self):
         return self.chain[len(self.chain) - 1]
 
-    def add_block(self, new_block):
-        new_block.previousHash = self.get_latest_block().currentHash
-        new_block.mine_block(self.difficulty)
-        self.chain.append(new_block)
+    # def add_block(self, new_block):
+    #     new_block.previousHash = self.get_latest_block().currentHash
+    #     new_block.mine_block(self.difficulty)
+    #     self.chain.append(new_block)
+
+    def mine_pending_transactions(self, mine_pending_address):
+        block = Block(datetime.now().strftime("%m/%d/%Y, %H:%M:%S"), self.pending_transactions)  # Not possible to do it like this in real blockchains
+        block.previousHash = self.get_latest_block().currentHash
+        block.mine_block(self.difficulty)
+
+        print("Block successfully mined!")
+        self.chain.append(block)
+
+        self.pending_transactions = [
+            Transaction(None, mine_pending_address, self.miningReward)  # The miner is rewarded with coins for mining this block, but only when the next block is mined
+        ]
+
+    def create_transaction(self, transaction):
+        self.pending_transactions.append(transaction)
+
+    def get_balance(self, address):
+        balance = 0
+        for block in self.chain:
+            if isinstance(block.transactions, Transaction):  # If there is only one transaction
+                if address == block.transactions.toAddress:
+                    balance += block.transactions.amount
+
+                if address == block.transactions.fromAddress:
+                    balance -= block.transactions.amount
+            else:
+                for transaction in block.transactions:
+                    if address == transaction.toAddress:
+                        balance += transaction.amount
+
+                    if address == transaction.fromAddress:
+                        balance -= transaction.amount
+
+        return balance
 
     def is_chain_valid(self):
         for i in range(1, len(self.chain)):
@@ -84,23 +125,15 @@ class Blockchain:
 
 blockchain = Blockchain()
 
-block1 = Block(1, "12/24/2018, 04:59:31", "importantData2")
-block2 = Block(2, "12/25/2018, 04:59:31", "importantData3")
+blockchain.create_transaction(Transaction("address1", "address2", 100))
+blockchain.create_transaction(Transaction("address2", "address1", 50))
 
-print("Mining block 1...")
-blockchain.add_block(block1)
+blockchain.mine_pending_transactions("catarina-address")
 
-print("Mining block 2...")
-blockchain.add_block(block2)
+print("Balance of catarina-address is: ", blockchain.get_balance("catarina-address"))
+print("Balance of address-1 is: ", blockchain.get_balance("address1"))
+print("Balance of address-2 is: ", blockchain.get_balance("address2"))
 
-print("Is chain valid? ", blockchain.is_chain_valid())
+blockchain.mine_pending_transactions("catarina-address")
 
-print("Tampering block1's data...")
-block1.data = "DifferentData"
-
-print("Is chain valid? ", blockchain.is_chain_valid())
-
-print("Tampering block1's hash...")
-block1.set_hash(block1.calculate_hash())
-
-print("Is chain valid? ", blockchain.is_chain_valid())
+print("Balance of catarina-address is: ", blockchain.get_balance("catarina-address"))
