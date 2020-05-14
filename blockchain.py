@@ -5,7 +5,7 @@ from uuid import uuid4
 
 class Transaction:
     def __init__(self, from_address, to_address, amount):
-        self.id = uuid4()
+        self.id = uuid4().__str__()
         self.fromAddress = from_address
         self.toAddress = to_address
         self.amount = amount
