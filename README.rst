@@ -1,5 +1,5 @@
 Simple project for illustrating a simple blockchain, testing and learning.
-
+This project can be installed with ``pip install . ``
 ## Requirements:
 Python 3.8.3
 
