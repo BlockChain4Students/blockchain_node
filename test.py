@@ -1,5 +1,5 @@
-from blockchain import Blockchain
-from blockchain import Transaction
+from blockchain.blockchain_data_structure import Blockchain
+from blockchain.blockchain_data_structure import Transaction
 
 blockchain = Blockchain()
 print(blockchain)

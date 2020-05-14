@@ -1,11 +1,11 @@
 import hashlib
 from datetime import datetime
 from uuid import uuid4
-
+import json
 
 class Transaction:
     def __init__(self, from_address, to_address, amount):
-        self.id = uuid4()
+        self.id = str(uuid4())
         self.fromAddress = from_address
         self.toAddress = to_address
         self.amount = amount
@@ -50,6 +50,9 @@ class Block:
         print("Previous hash: ", self.previousHash)
         print("Current hash: ", self.currentHash)
         print()
+
+    def serialize(self):
+        return json.dumps(self, sort_keys=True).encode('utf-8')
 
 
 class Blockchain:

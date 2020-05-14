@@ -1,14 +1,8 @@
 #https://flask.palletsprojects.com/en/1.1.x/
-import hashlib
-import json
-from textwrap import dedent
-from time import time
 from uuid import uuid4
 
 from flask import Flask
-from blockchain import Blockchain
-from blockchain import Transaction
-
+from blockchain.blockchain_data_structure import Blockchain
 
 # Instantiate our Node
 app = Flask(__name__)
