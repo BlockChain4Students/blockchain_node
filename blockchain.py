@@ -1,22 +1,30 @@
 import hashlib
 from datetime import datetime
+from uuid import uuid4
 
 
 class Transaction:
     def __init__(self, from_address, to_address, amount):
+        self.id = uuid4()
         self.fromAddress = from_address
         self.toAddress = to_address
         self.amount = amount
 
+    def __repr__(self):
+        return "Transaction " + self.id
 
 class Block:
 
     def __init__(self, timestamp, transactions):
+        #self.index = currentIndex + 1
         self.timestamp = timestamp
         self.transactions = transactions
         self.previousHash = ""
         self.currentHash = ""
         self.nonce = 0
+
+    def __repr__(self):
+        return self.timestamp + self.transactions + "Previous hash: " + self.previousHash + self.currentHash
 
     def calculate_hash(self):
         hash_str = self.timestamp + str(self.transactions) + self.previousHash + str(self.nonce)
@@ -45,12 +53,14 @@ class Block:
 
 
 class Blockchain:
-
     def __init__(self):
         self.chain = [self.calculate_gen_block()]
         self.difficulty = 2  # Determines how long it takes to calculate proof-of-work
         self.pending_transactions = []  # Due to proof-of-work phase
         self.miningReward = 100  # Reward if a new block is successfully mined
+
+    def __repr__(self):
+        return "class" + str(self.__class__)
 
     def calculate_gen_block(self):
         gen_block = Block(datetime.now().strftime("%m/%d/%Y, %H:%M:%S"), Transaction(None, " ", 0))
@@ -67,7 +77,8 @@ class Blockchain:
     #     self.chain.append(new_block)
 
     def mine_pending_transactions(self, mine_pending_address):
-        block = Block(datetime.now().strftime("%m/%d/%Y, %H:%M:%S"), self.pending_transactions)  # Not possible to do it like this in real blockchains
+        block = Block(datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
+                      self.pending_transactions)  # Not possible to do it like this in real blockchains
         block.previousHash = self.get_latest_block().currentHash
         block.mine_block(self.difficulty)
 
@@ -75,7 +86,8 @@ class Blockchain:
         self.chain.append(block)
 
         self.pending_transactions = [
-            Transaction(None, mine_pending_address, self.miningReward)  # The miner is rewarded with coins for mining this block, but only when the next block is mined
+            Transaction(None, mine_pending_address, self.miningReward)
+            # The miner is rewarded with coins for mining this block, but only when the next block is mined
         ]
 
     def create_transaction(self, transaction):
@@ -103,14 +115,14 @@ class Blockchain:
     def is_chain_valid(self):
         for i in range(1, len(self.chain)):
             curr_block = self.chain[i]
-            previous_block = self.chain[i-1]
+            previous_block = self.chain[i - 1]
 
             if curr_block.currentHash != curr_block.calculate_hash():
-                print("Current hash of block", "(" + str(i) + ")",  "is invalid.")
+                print("Current hash of block", "(" + str(i) + ")", "is invalid.")
                 return False
 
             elif curr_block.previousHash != previous_block.currentHash:
-                print("Hash of previous block", "(" + str(i - 1) + ")",  "is invalid.")
+                print("Hash of previous block", "(" + str(i - 1) + ")", "is invalid.")
                 return False
 
         return True
@@ -119,21 +131,4 @@ class Blockchain:
         for bl in self.chain:
             bl.print_self()
 
-
 ########################################################################################################################
-
-
-blockchain = Blockchain()
-
-blockchain.create_transaction(Transaction("address1", "address2", 100))
-blockchain.create_transaction(Transaction("address2", "address1", 50))
-
-blockchain.mine_pending_transactions("catarina-address")
-
-print("Balance of catarina-address is: ", blockchain.get_balance("catarina-address"))
-print("Balance of address-1 is: ", blockchain.get_balance("address1"))
-print("Balance of address-2 is: ", blockchain.get_balance("address2"))
-
-blockchain.mine_pending_transactions("catarina-address")
-
-print("Balance of catarina-address is: ", blockchain.get_balance("catarina-address"))
