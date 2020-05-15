@@ -15,8 +15,8 @@ class Transaction:
 
 class Block:
 
-    def __init__(self, timestamp, transactions):
-        #self.index = currentIndex + 1
+    def __init__(self, timestamp, transactions, index):
+        self.index = index
         self.timestamp = timestamp
         self.transactions = transactions
         self.previousHash = ""
@@ -27,8 +27,8 @@ class Block:
         return self.timestamp + self.transactions + "Previous hash: " + self.previousHash + self.currentHash
 
     def calculate_hash(self):
-        hash_str = self.timestamp + str(self.transactions) + self.previousHash + str(self.nonce)
-        hash_res = hashlib.sha256(hash_str.encode())
+        #self.timestamp + str(self.transactions) + self.previousHash + str(self.nonce)
+        hash_res = hashlib.sha256(str(self.__dict__).encode())
         return hash_res.hexdigest()
 
     def set_hash(self, hash_code):
@@ -66,7 +66,7 @@ class Blockchain:
         return "class" + str(self.__class__)
 
     def calculate_gen_block(self):
-        gen_block = Block(datetime.now().strftime("%m/%d/%Y, %H:%M:%S"), Transaction(None, " ", 0))
+        gen_block = Block(datetime.now().strftime("%m/%d/%Y, %H:%M:%S"), Transaction(None, " ", 0), 0)
         gen_block.set_hash(gen_block.calculate_hash())
         gen_block.previousHash = "0"
         return gen_block
@@ -80,8 +80,8 @@ class Blockchain:
     #     self.chain.append(new_block)
 
     def mine_pending_transactions(self, mine_pending_address):
-        block = Block(datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
-                      self.pending_transactions)  # Not possible to do it like this in real blockchains
+        block = Block(datetime.now().strftime("%m/%d/%Y, %H:%M:%S"), self.pending_transactions,
+                      0)  # Not possible to do it like this in real blockchains
         block.previousHash = self.get_latest_block().currentHash
         block.mine_block(self.difficulty)
 
@@ -92,6 +92,8 @@ class Blockchain:
             Transaction(None, mine_pending_address, self.miningReward)
             # The miner is rewarded with coins for mining this block, but only when the next block is mined
         ]
+        #add sanity checks
+        return "Block mined"
 
     def create_transaction(self, transaction):
         self.pending_transactions.append(transaction)

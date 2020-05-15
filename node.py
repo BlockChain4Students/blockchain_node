@@ -1,8 +1,12 @@
 #https://flask.palletsprojects.com/en/1.1.x/
 from uuid import uuid4
-
+from datetime import datetime
 from flask import Flask
 from blockchain.blockchain_data_structure import Blockchain
+import json
+
+#group of nodes participating on the network
+peers = set()
 
 # Instantiate our Node
 app = Flask(__name__)
@@ -16,23 +20,48 @@ blockchain = Blockchain()
 
 @app.route('/mine', methods=['GET'])
 def mine():
-    return "We'll mine a new Block"
+    result = blockchain.mine_pending_transactions()
+    if not result:
+        return "No pending tx"
+    return result
 
 
 @app.route('/transactions/new', methods=['POST'])
 def new_transaction():
-    return "We'll add a new transaction"
+    tx_data = request.get_json()
+
+    tx_data["timestamp"] = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
+
+    #blockchain.create_transaction()
+
+    return "Success", 200
 
 
-@app.route('/chain', methods=['GET'])
-def full_chain():
+@app.route('/getChain', methods=['GET'])
+def get_chain():
     response = {
         'chain': blockchain.chain,
         'length': len(blockchain.chain),
     }
-    return jsonify(response), 200
+    return json.dumps(response), 200
 
+@app.route('/pendingTransactions', methods=['GET'])
+def getPendingTransactions():
+    return json.dumps(blockchain.pending_transactions), 200
 
+@app.route('/registerNode', methods=['POST'])
+def register_peer_node():
+    node_address = request.get_json()["node_address"]
+    peers.add(node_address)
+    return get_chain()
+
+#TODO
+#@app.route('/register_with', methods=['POST'])
+#def register_with_existing_node():
+
+#TODO
+#@app.route('/add_block', methods=['POST'])
+#def add_and_announce_block():
 
 
 if __name__ == '__main__':
