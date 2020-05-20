@@ -6,4 +6,6 @@ ADD requirements.txt .
 
 RUN pip install -r requirements.txt
 
-CMD [ "python", "./test.py" ]
+EXPOSE 5000
+
+CMD [ "python", "test.py", "--port", "5000"]

@@ -13,4 +13,6 @@ The endpoints can be tested with Postman
 ## Using Docker
 Run ``docker build -t blockchain4students-node .``
 
-Run ``docker run blockchain4students-node``
+Run ``docker run --rm -p 8001:5000 blockchain4students-node`` to start node 1
+
+Run ``docker run --rm -p 8002:5000 blockchain4students-node`` to start node 2
