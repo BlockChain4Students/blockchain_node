@@ -9,3 +9,8 @@ pip install -r requirements.txt
 ## Running the server
 Run ```python node``` to run a node.
 The endpoints can be tested with Postman
+
+## Using Docker
+Run ``docker build -t blockchain4students-node .``
+
+Run ``docker run blockchain4students-node``
