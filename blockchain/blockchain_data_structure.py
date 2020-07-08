@@ -61,6 +61,7 @@ class Blockchain:
         self.difficulty = 2  # Determines how long it takes to calculate proof-of-work
         self.pending_transactions = []  # Due to proof-of-work phase
         self.miningReward = 100  # Reward if a new block is successfully mined
+        self.peer_nodes = set()
 
     def __repr__(self):
         return "class" + str(self.__class__)
@@ -136,4 +137,6 @@ class Blockchain:
         for bl in self.chain:
             bl.print_self()
 
+    def register_node(self, address):
+        self.nodes.add(address)
 ########################################################################################################################

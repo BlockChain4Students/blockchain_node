@@ -5,9 +5,6 @@ from flask import Flask
 from blockchain.blockchain_data_structure import Blockchain
 import json
 
-#group of nodes participating on the network
-peers = set()
-
 # Instantiate our Node
 app = Flask(__name__)
 
@@ -18,42 +15,42 @@ node_identifier = str(uuid4()).replace('-', '')
 blockchain = Blockchain()
 
 
-@app.route('/mine', methods=['GET'])
-def mine():
-    result = blockchain.mine_pending_transactions()
-    if not result:
-        return "No pending tx"
-    return result
-
-
-@app.route('/transactions/new', methods=['POST'])
-def new_transaction():
-    tx_data = request.get_json()
-
-    tx_data["timestamp"] = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
-
-    #blockchain.create_transaction()
-
-    return "Success", 200
-
-
 @app.route('/getChain', methods=['GET'])
 def get_chain():
     response = {
         'chain': blockchain.chain,
-        'length': len(blockchain.chain),
+        'blockIndex': len(blockchain.chain),
+        'metadata': blockchain.miningReward
     }
     return json.dumps(response), 200
 
-@app.route('/pendingTransactions', methods=['GET'])
-def getPendingTransactions():
+@app.route('/transactions/new', methods=['POST'])
+def new_transaction():
+    #TODO input sanitization
+    tx_data = request.get_json()
+    tx_data["timestamp"] = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
+
+    blockchain.create_transaction(tx_data["from_address"], tx_data["to_address"], tx_data["ammount"])
+
+    return "Success", 200
+
+
+@app.route('/transactions/pending', methods=['GET'])
+def get_pending_transactions():
     return json.dumps(blockchain.pending_transactions), 200
 
-@app.route('/registerNode', methods=['POST'])
+@app.route('/register/node', methods=['POST'])
 def register_peer_node():
     node_address = request.get_json()["node_address"]
-    peers.add(node_address)
-    return get_chain()
+    blockchain.register_node(node_address)
+
+    response = {
+        'message': 'Node added',
+        'total_nodes': list(blockchain.peer_nodes),
+    }
+
+    return json.dumps(response), 200
+
 
 #TODO
 #@app.route('/register_with', methods=['POST'])
