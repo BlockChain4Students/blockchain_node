@@ -93,7 +93,8 @@ class Blockchain:
         #add sanity checks
         return "Block mined"
 
-    def create_transaction(self, transaction):
+    def create_transaction(self, from_address, to_address, ammount):
+        transaction = Transaction(from_address, to_address, ammount)
         self.pending_transactions.append(transaction)
 
     def get_balance(self, address):
