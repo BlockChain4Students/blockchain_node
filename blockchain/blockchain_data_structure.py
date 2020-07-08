@@ -81,8 +81,9 @@ class Blockchain:
     #     self.chain.append(new_block)
 
     def mine_pending_transactions(self, mine_pending_address):
+        latest_block_index = self.get_latest_block().index + 1
         block = Block(datetime.now().strftime("%m/%d/%Y, %H:%M:%S"), self.pending_transactions,
-                      0)  # Not possible to do it like this in real blockchains
+                      latest_block_index)  # Not possible to do it like this in real blockchains
         block.previousHash = self.get_latest_block().currentHash
         block.mine_block(self.difficulty)
 
