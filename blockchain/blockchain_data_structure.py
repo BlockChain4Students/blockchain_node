@@ -2,6 +2,7 @@ import hashlib
 from datetime import datetime
 from uuid import uuid4
 import json
+from blockchain.consensus import ProofOfWork
 
 class Transaction:
     def __init__(self, from_address, to_address, amount):
@@ -12,6 +13,7 @@ class Transaction:
 
     def __repr__(self):
         return "Transaction " + self.id
+
 
 class Block:
 
@@ -36,13 +38,7 @@ class Block:
 
     # Proof-of-work
     def mine_block(self, difficulty):
-        compare_str = "".join((["0"] * difficulty))
-
-        while self.currentHash[0:difficulty] != compare_str:
-            self.nonce += 1
-            self.currentHash = self.calculate_hash()
-
-        print("Block mined:", self.currentHash)
+        ProofOfWork(self, difficulty).mine_block()
 
     def print_self(self):
         print(self.timestamp)
