@@ -5,6 +5,7 @@ from flask import Flask
 from flask import request
 from blockchain.blockchain_data_structure import Blockchain
 import json
+import jsonpickle
 
 # Instantiate our Node
 app = Flask(__name__)
@@ -19,7 +20,7 @@ blockchain = Blockchain("catarina-address")
 @app.route('/getChain', methods=['GET'])
 def get_chain():
     response = {
-        'chain': blockchain.chain,
+        'chain': jsonpickle.encode(blockchain.chain),   # We may want to create a JSON encoder for "prettier" results
         'blockIndex': len(blockchain.chain),
         'metadata': blockchain.miningReward
     }
@@ -40,7 +41,7 @@ def new_transaction():
 
 @app.route('/transactions/pending', methods=['GET'])
 def get_pending_transactions():
-    return json.dumps(blockchain.pending_transactions), 200
+    return jsonpickle.encode(blockchain.pending_transactions), 200
 
 
 @app.route('/register/node', methods=['POST'])

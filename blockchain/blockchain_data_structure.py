@@ -57,12 +57,17 @@ class Block:
 class Blockchain:
     def __init__(self, miner_address):
         self.chain = [self.calculate_gen_block()]
-        self.difficulty = 2  # Determines how long it takes to calculate proof-of-work
+
         self.pending_transactions = []  # Due to proof-of-work phase
-        self.miningReward = 100  # Reward if a new block is successfully mined
+
         self.peer_nodes = set()
+
         self.miner_address = miner_address  # Mined block rewards will always want to go to my own address
-        self.number_of_transactions = 3
+        # Constants
+        self.difficulty = 2  # Determines how long it takes to calculate proof-of-work
+        self.miningReward = 100  # Reward if a new block is successfully mined
+        self.number_of_transactions = 3  # Number of transactions it waits to create a block
+
 
     def __repr__(self):
         return "class" + str(self.__class__)

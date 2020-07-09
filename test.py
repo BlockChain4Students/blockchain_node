@@ -17,3 +17,5 @@ blockchain.create_transaction("address2", "address1", 50)
 print("Balance of catarina-address is: ", blockchain.get_balance("catarina-address"))
 print("Balance of address-1 is: ", blockchain.get_balance("address1"))
 print("Balance of address-2 is: ", blockchain.get_balance("address2"))
+
+print("Blockchain size: ", len(blockchain.chain))
