@@ -1,2 +1,3 @@
 flask
+pycryptodome
 setuptools~=49.1.0

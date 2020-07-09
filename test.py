@@ -3,8 +3,8 @@ from blockchain.blockchain_data_structure import Transaction
 
 blockchain = Blockchain()
 print(blockchain)
-blockchain.create_transaction(Transaction("address1", "address2", 100))
-blockchain.create_transaction(Transaction("address2", "address1", 50))
+blockchain.create_transaction("address1", "address2", 100)
+blockchain.create_transaction("address2", "address1", 50)
 
 blockchain.mine_pending_transactions("catarina-address")
 
