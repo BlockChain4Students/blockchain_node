@@ -13,7 +13,7 @@ app = Flask(__name__)
 node_identifier = str(uuid4()).replace('-', '')
 
 # Instantiate the Blockchain
-blockchain = Blockchain()
+blockchain = Blockchain("catarina-address")
 
 
 @app.route('/getChain', methods=['GET'])
