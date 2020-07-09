@@ -2,6 +2,8 @@ import hashlib
 from datetime import datetime
 from uuid import uuid4
 import json
+from Crypto.Hash import SHA256
+
 
 class Transaction:
     def __init__(self, from_address, to_address, amount):
@@ -9,27 +11,30 @@ class Transaction:
         self.fromAddress = from_address
         self.toAddress = to_address
         self.amount = amount
+        # self.signature = signature
 
     def __repr__(self):
         return "Transaction " + self.id
 
+
 class Block:
 
     def __init__(self, timestamp, transactions, index):
-        self.index = index
         self.timestamp = timestamp
         self.transactions = transactions
+        self.index = index
         self.previousHash = ""
         self.currentHash = ""
         self.nonce = 0
+        global h
+        h = SHA256.new()  # Find a better place to put this in
 
     def __repr__(self):
         return self.timestamp + self.transactions + "Previous hash: " + self.previousHash + self.currentHash
 
     def calculate_hash(self):
-        #self.timestamp + str(self.transactions) + self.previousHash + str(self.nonce)
-        hash_res = hashlib.sha256(str(self.__dict__).encode())
-        return hash_res.hexdigest()
+        h.update(b'str(self.__dict__)')
+        return h.hexdigest()
 
     def set_hash(self, hash_code):
         self.currentHash = hash_code
@@ -74,11 +79,6 @@ class Blockchain:
 
     def get_latest_block(self):
         return self.chain[len(self.chain) - 1]
-
-    # def add_block(self, new_block):
-    #     new_block.previousHash = self.get_latest_block().currentHash
-    #     new_block.mine_block(self.difficulty)
-    #     self.chain.append(new_block)
 
     def mine_pending_transactions(self, mine_pending_address):
         block = Block(datetime.now().strftime("%m/%d/%Y, %H:%M:%S"), self.pending_transactions,
@@ -138,5 +138,5 @@ class Blockchain:
             bl.print_self()
 
     def register_node(self, address):
-        self.nodes.add(address)
+        self.peer_nodes.add(address)
 ########################################################################################################################

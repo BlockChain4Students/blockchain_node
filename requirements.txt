@@ -1,1 +1,2 @@
 flask
+setuptools~=49.1.0
