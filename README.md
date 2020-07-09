@@ -7,7 +7,7 @@ Python 3.8.3
 pip install -r requirements.txt
 
 ## Running the server
-Run ```python node``` to run a node.
+Run ```python node.py``` to run a node.
 The endpoints can be tested with Postman
 
 ## Using Docker
