@@ -2,8 +2,8 @@ import hashlib
 from datetime import datetime
 from uuid import uuid4
 import json
+from blockchain.consensus import ProofOfWork
 from Crypto.Hash import SHA256
-
 
 class Transaction:
     def __init__(self, from_address, to_address, amount):
@@ -41,13 +41,7 @@ class Block:
 
     # Proof-of-work
     def mine_block(self, difficulty):
-        compare_str = "".join((["0"] * difficulty))
-
-        while self.currentHash[0:difficulty] != compare_str:
-            self.nonce += 1
-            self.currentHash = self.calculate_hash()
-
-        print("Block mined:", self.currentHash)
+        ProofOfWork(self, difficulty).mine_block()
 
     def print_self(self):
         print(self.timestamp)
@@ -81,8 +75,9 @@ class Blockchain:
         return self.chain[len(self.chain) - 1]
 
     def mine_pending_transactions(self, mine_pending_address):
+        latest_block_index = self.get_latest_block().index + 1
         block = Block(datetime.now().strftime("%m/%d/%Y, %H:%M:%S"), self.pending_transactions,
-                      0)  # Not possible to do it like this in real blockchains
+                      latest_block_index)  # Not possible to do it like this in real blockchains
         block.previousHash = self.get_latest_block().currentHash
         block.mine_block(self.difficulty)
 
@@ -96,7 +91,8 @@ class Blockchain:
         #add sanity checks
         return "Block mined"
 
-    def create_transaction(self, transaction):
+    def create_transaction(self, from_address, to_address, ammount):
+        transaction = Transaction(from_address, to_address, ammount)
         self.pending_transactions.append(transaction)
 
     def get_balance(self, address):
