@@ -1,2 +1,4 @@
 flask
+pycryptodome
+jsonpickle
 setuptools~=49.1.0
