@@ -1,7 +1,7 @@
 from blockchain.blockchain_data_structure import Blockchain
 from blockchain.blockchain_data_structure import Transaction
 
-blockchain = Blockchain("catarina-address")
+blockchain = Blockchain("catarina-address", '0.0.0.0', 5000)
 print(blockchain)
 blockchain.create_transaction("address1", "address2", 100)
 blockchain.create_transaction("address2", "address1", 50)
