@@ -4,6 +4,7 @@ from datetime import datetime
 from flask import Flask
 from flask import request
 from blockchain.blockchain_data_structure import Blockchain
+from crypto.keygen import generate_key_pair
 import json
 import jsonpickle
 
@@ -13,8 +14,8 @@ app = Flask(__name__)
 # Generate a globally unique address for this node
 node_identifier = str(uuid4()).replace('-', '')
 
-# Instantiate the Blockchain
-
+# Obtain public/private key_pair for this node
+generate_key_pair(node_identifier)
 
 
 @app.route('/getChain', methods=['GET'])
@@ -34,8 +35,7 @@ def new_transaction():
 
     tx_data["timestamp"] = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
 
-    blockchain.create_transaction(tx_data["from_address"], tx_data["to_address"], tx_data["ammount"])
-
+    blockchain.create_transaction(tx_data["from_address"], tx_data["to_address"], tx_data["amount"])
     return "Success", 200
 
 
@@ -78,6 +78,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
     port = args.port
     host = '0.0.0.0'
-    blockchain = Blockchain("catarina-address", host, port)
+    blockchain = Blockchain("catarina-address", node_identifier, host, port)
     blockchain.obtain_peer_node()
     app.run(host=host, port=port)

@@ -1,7 +1,10 @@
 from blockchain.blockchain_data_structure import Blockchain
-from blockchain.blockchain_data_structure import Transaction
+from crypto.keygen import generate_key_pair
 
-blockchain = Blockchain("catarina-address", '0.0.0.0', 5000)
+
+blockchain = Blockchain("catarina-address", "test", '0.0.0.0', 5000)
+generate_key_pair("test")
+
 print(blockchain)
 blockchain.create_transaction("address1", "address2", 100)
 blockchain.create_transaction("address2", "address1", 50)

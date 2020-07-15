@@ -23,5 +23,3 @@ class ProofOfWork(Consensus):
         while self.block.currentHash[0:self.difficulty] != compare_str:
             self.block.nonce += 1
             self.block.currentHash = self.block.calculate_hash()
-
-        print("Block mined:", self.block.currentHash)
