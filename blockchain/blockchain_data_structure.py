@@ -1,59 +1,102 @@
 from datetime import datetime
 from uuid import uuid4
 import json
-
-from crypto.keygen import sign_hash, verify_sig
+from crypto.keygen import sign_hash, verify_sig, generate_key_pair
 from blockchain.consensus import ProofOfWork
 from Crypto.Hash import SHA256
 import requests
 
 
 class Transaction:
-    def __init__(self, from_address, to_address, amount):
+    def __init__(self, from_address, to_address, amount, node_id):
+        self.check_arguments(from_address, to_address, amount, node_id)
         self.id = str(uuid4())
+        self.node_id = node_id
         self.fromAddress = from_address
         self.toAddress = to_address
         self.amount = amount
-        self.signature = b''
+        self.signature = sign_hash(self.calculate_hash(), node_id)
 
     def __repr__(self):
         return "Transaction " + self.id
 
+    def check_arguments(self, from_address, to_address, amount, node_id):
+        if not to_address:
+            raise Exception("Transaction must have a destination address")
+
+        if not node_id:
+            raise Exception("Transaction must have an associated node id")
+
+        # What type should from and to address be? How do we define public keys?
+        # TODO - Add from and to address type checks
+
+        if not type(amount) is float:
+            raise Exception("Transaction amount must be a float value")
+
+        if amount < 0:
+            raise Exception("Transaction amount must be greater or equal than 0")
+
     def calculate_hash(self):
         t_hash = SHA256.new()
-        t_hash.update("self.id + self.fromAddress + self.toAddress + str(self.amount)".encode())
+        t_hash.update(self.transaction_content().encode())
         return t_hash
 
-    def sign_transaction(self, node_id):
-        self.signature = sign_hash(self.calculate_hash(), node_id)
-
-    def check_valid(self, node_id):
+    def check_valid(self):
         if not self.signature or len(self.signature) == 0:
             print("No signature is this transaction!")
             return False
 
         h = SHA256.new()
-        h.update("self.id + self.fromAddress + self.toAddress + str(self.amount)".encode())
-        verify_sig(h, self.signature, node_id)  # Throws error if signature is invalid
+        h.update(self.transaction_content().encode())
+
+        try:
+            verify_sig(h, self.signature, self.node_id)  # Throws error if signature is invalid
+        except Exception:
+            print("Signature failed, integrity and/or signature value was not upheld")
+            return False
+
         return True
+
+    def transaction_content(self):
+        return "{}{}{}{}{}".format(self.id, self.node_id, self.fromAddress, self.toAddress, self.amount)
 
 
 class Block:
 
-    def __init__(self, timestamp, transactions, index):
+    def __init__(self, timestamp, transactions, index, previous_hash=""):
+        self.check_arguments(timestamp, transactions, index, previous_hash)
         self.timestamp = timestamp
         self.transactions = transactions
         self.index = index
-        self.previousHash = ""
+        self.previousHash = previous_hash
         self.currentHash = ""
         self.nonce = 0
 
     def __repr__(self):
         return self.timestamp + self.transactions + "Previous hash: " + self.previousHash + self.currentHash
 
+    def check_arguments(self, timestamp, transactions, index, previous_hash):
+        if not timestamp or not transactions:
+            raise Exception("Block must have a timestamp, one or more transactions and the previous block hash")
+
+        # TODO - Timestamp check fails when using datetime.now, find the correct type
+        # if not isinstance(timestamp, type(datetime.now)):
+        #    raise Exception("Timestamp must be a datetime")
+
+        if index < 0 or not type(index) is int:
+            raise Exception("Index must be a positive integer greater or equal to 0")
+
+        try:
+            self.has_valid_transactions(transactions)
+        except:
+            raise Exception("Invalid Transactions")
+
+        # TODO - Add check for previous hash to be empty only for first block
+
+
     def calculate_hash(self):
         b_hash = SHA256.new()
-        b_hash.update(str(self.__dict__).encode())
+        b_hash.update(self.get_block_content().encode())
         return b_hash.hexdigest()
 
     def set_hash(self, hash_code):
@@ -63,6 +106,9 @@ class Block:
     def mine_block(self, difficulty):
         ProofOfWork(self, difficulty).mine_block()
 
+    def get_block_content(self):
+        return "{}{}{}{}{}".format(self.timestamp, self.transactions, self.index, self.previousHash, self.nonce)
+
     def print_self(self):
         print(self.timestamp)
         print(self.transactions)
@@ -70,9 +116,16 @@ class Block:
         print("Current hash: ", self.currentHash)
         print()
 
-    def has_valid_transactions(self):
-        for trans in self.transactions:
-            trans.check_valid()  # Returns exception if not valid
+    def has_valid_transactions(self, transactions):
+
+        trans: Transaction
+        if isinstance(transactions, Transaction):  # If there is only one transaction
+            transactions.check_valid()
+
+        else:
+            for trans in transactions:
+                trans.check_valid()  # Returns exception if not valid
+
         return True
 
     def serialize(self):
@@ -87,7 +140,10 @@ class Blockchain:
         # Node Discovery
         self.discovery_node_address = '0.0.0.0:5000'
 
-        self.chain = [self.calculate_gen_block()]
+        # Generate Public/Private key pair
+        generate_key_pair(node_identifier)
+
+        self.chain = [self.calculate_gen_block(node_identifier)]
         self.pending_transactions = []  # Due to proof-of-work phase
         self.peer_nodes = set()
         self.miner_address = miner_address  # Mined block rewards will always want to go to my own address
@@ -95,14 +151,14 @@ class Blockchain:
 
         # Constants
         self.difficulty = 2  # Determines how long it takes to calculate proof-of-work
-        self.miningReward = 100  # Reward if a new block is successfully mined
+        self.miningReward = 100.0  # Reward if a new block is successfully mined
         self.number_of_transactions = 3  # Number of transactions it waits to create a block
 
     def __repr__(self):
         return "class" + str(self.__class__)
 
-    def calculate_gen_block(self):
-        gen_block = Block(datetime.now(), Transaction(None, " ", 0), 0)
+    def calculate_gen_block(self, node_id):
+        gen_block = Block(datetime.now(), Transaction(None, " ", 0.0, node_id), 0)
         gen_block.set_hash(gen_block.calculate_hash())
         gen_block.previousHash = "0"
         return gen_block
@@ -114,8 +170,7 @@ class Blockchain:
         latest_block_index = self.get_latest_block().index + 1
         block_trans = self.pending_transactions.copy()
         block = Block(datetime.now(), block_trans,
-                      latest_block_index)  # Not possible to do it like this in real blockchains
-        block.previousHash = self.get_latest_block().currentHash
+                      latest_block_index, self.get_latest_block().currentHash)
         block.mine_block(self.difficulty)
 
         print("Block successfully mined: ", block.currentHash)
@@ -127,13 +182,10 @@ class Blockchain:
         return "Block mined"
 
     def create_transaction(self, from_address, to_address, amount):
-        transaction = Transaction(from_address, to_address, amount)
+        transaction = Transaction(from_address, to_address, amount, self.node_identifier)
 
         if not transaction.toAddress:
             raise Exception('The transaction must "to address"!')
-
-        transaction.sign_transaction(self.node_identifier)
-        transaction.check_valid(self.node_identifier)  # This verification should be done by peer nodes, right?
 
         self.pending_transactions.append(transaction)
 
@@ -166,7 +218,7 @@ class Blockchain:
             curr_block = self.chain[i]
             previous_block = self.chain[i - 1]
 
-            if not curr_block.has_valid_transactions():
+            if not curr_block.has_valid_transactions(curr_block.transactions):
                 print("Current block", "(" + str(i) + ")", "has invalid transactions.")
                 return False
 
