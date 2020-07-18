@@ -46,12 +46,10 @@ class Transaction:
             print("No signature is this transaction!")
             return False
 
-        h = SHA256.new()
-        h.update(self.transaction_content().encode())
-
         try:
             verify_sig(h, self.signature, self.node_id)  # Throws error if signature is invalid
-        except Exception:
+        
+        except:
             print("Signature failed, integrity and/or signature value was not upheld")
             return False
 
@@ -83,12 +81,11 @@ class Block:
         # if not isinstance(timestamp, type(datetime.now)):
         #    raise Exception("Timestamp must be a datetime")
 
-        if index < 0 or not type(index) is int:
+        if index < 0 or not isinstance(index, int):
             raise Exception("Index must be a positive integer greater or equal to 0")
 
-        try:
-            self.has_valid_transactions(transactions)
-        except:
+
+        if not self.has_valid_transactions(transactions):
             raise Exception("Invalid Transactions")
 
         # TODO - Add check for previous hash to be empty only for first block
@@ -120,13 +117,14 @@ class Block:
 
         trans: Transaction
         if isinstance(transactions, Transaction):  # If there is only one transaction
-            transactions.check_valid()
+            return transactions.check_valid()
 
         else:
             for trans in transactions:
-                trans.check_valid()  # Returns exception if not valid
+                if not trans.check_valid():
+                    return False
 
-        return True
+            return True
 
     def serialize(self):
         return json.dumps(self, sort_keys=True).encode('utf-8')
@@ -134,6 +132,8 @@ class Block:
 
 class Blockchain:
     def __init__(self, miner_address, node_identifier, host, port):
+        self.check_arguments(miner_address, node_identifier, host, port)
+
         # Node Location
         self.address = '{}:{}'.format(host, port)
 
@@ -143,11 +143,11 @@ class Blockchain:
         # Generate Public/Private key pair
         generate_key_pair(node_identifier)
 
-        self.chain = [self.calculate_gen_block(node_identifier)]
         self.pending_transactions = []  # Due to proof-of-work phase
         self.peer_nodes = set()
         self.miner_address = miner_address  # Mined block rewards will always want to go to my own address
         self.node_identifier = node_identifier  # Node that owns this local blockchain
+        self.chain = [self.calculate_gen_block()]
 
         # Constants
         self.difficulty = 2  # Determines how long it takes to calculate proof-of-work
@@ -157,10 +157,22 @@ class Blockchain:
     def __repr__(self):
         return "class" + str(self.__class__)
 
-    def calculate_gen_block(self, node_id):
-        gen_block = Block(datetime.now(), Transaction(None, " ", 0.0, node_id), 0)
+    def check_arguments(self, miner_address, node_identifier, host, port):
+        if not miner_address or not node_identifier or not host or not port:
+            raise Exception("Blockchain must have the miner address, the node identifier a host and a port!")
+
+        # Can miner address be anything other than a string?
+        if not isinstance(miner_address, str):
+            raise Exception("Miner address must be a String")
+
+        if not isinstance(port, int) or port < 0:
+            raise Exception("Port number must be a positive integer")
+
+        # TODO - How to check if a host is valid? Can it be anything other than a string?
+
+    def calculate_gen_block(self):
+        gen_block = Block(datetime.now(), Transaction(None, " ", 0.0, self.node_identifier), 0, "0")
         gen_block.set_hash(gen_block.calculate_hash())
-        gen_block.previousHash = "0"
         return gen_block
 
     def get_latest_block(self):
@@ -176,16 +188,22 @@ class Blockchain:
         print("Block successfully mined: ", block.currentHash)
         self.chain.append(block)
         self.pending_transactions.clear()
-        self.create_transaction(None, self.miner_address, self.miningReward)
+        self.create_reward_transaction(self.miner_address, self.miningReward)
 
         #  add sanity checks
         return "Block mined"
 
+    def create_reward_transaction(self, to_address, amount):
+        self.pending_transactions.append(Transaction(None, to_address, amount, self.node_identifier))
+
+        if len(self.pending_transactions) >= self.number_of_transactions:
+            self.mine_pending_transactions()
+
     def create_transaction(self, from_address, to_address, amount):
         transaction = Transaction(from_address, to_address, amount, self.node_identifier)
 
-        if not transaction.toAddress:
-            raise Exception('The transaction must "to address"!')
+        if not from_address:
+            raise Exception("Transaction must have a from address!")
 
         self.pending_transactions.append(transaction)
 

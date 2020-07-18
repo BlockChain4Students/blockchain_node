@@ -1,6 +1,4 @@
 from blockchain.blockchain_data_structure import Blockchain
-from crypto.keygen import generate_key_pair
-
 
 blockchain = Blockchain("catarina-address", "test", '0.0.0.0', 5000)
 

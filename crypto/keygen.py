@@ -33,9 +33,13 @@ def verify_sig(hc, signature, node_id):
     if not os.path.exists(file_pub):
         raise Exception("Public key does not exist")
     f = open(file_pub, 'r')
-    pub_key = RSA.import_key(f.read())  # Read public key from file
-    f.close()
-    signer = PKCS115_SigScheme(pub_key)
-    signer.verify(hc, signature)
+    try:
+        pub_key = RSA.import_key(f.read())  # Read public key from file
+        f.close()
+        signer = PKCS115_SigScheme(pub_key)
+        signer.verify(hc, signature)
+    except:
+        raise Exception("Signature failed, integrity and/or signature value was not upheld")
+
 
 
