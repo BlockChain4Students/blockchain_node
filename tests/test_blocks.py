@@ -15,7 +15,7 @@ from_address = "from_address"
 to_address = "to_address"
 amount = 1.0
 difficulty = 2
-timestamp = datetime.now
+timestamp = datetime.now()
 transaction = Transaction(from_address, to_address, amount, node_identifier)
 
 incorrect_transaction = Transaction(from_address, to_address, amount, node_identifier)
@@ -23,6 +23,8 @@ incorrect_transaction.amount = -1.0
 b_hash = SHA256.new()
 b_hash.update("test".encode())
 previous_hash = b_hash.hexdigest()
+
+vector_type_checks = [100, "string", 10.0]
 
 class TestBlockClass(unittest.TestCase):
 
@@ -36,14 +38,23 @@ class TestBlockClass(unittest.TestCase):
         self.assertEqual(block.transactions, transaction)
         self.assertEqual(block.index, 0)
 
-    # TODO - Add test for wrong type timestamp
     def test_constructor_null_timestamp(self):
         with self.assertRaises(Exception):
             Block(None, transaction, 0)
 
+    def test_constructor_incorrect_timestamp(self):
+        for argument in vector_type_checks:
+            with self.assertRaises(Exception):
+                Block(argument, transaction, 0)
+
     def test_constructor_null_transaction(self):
         with self.assertRaises(Exception):
             Block(timestamp, None, 0)
+
+    def test_constructor_incorrect_argument_transaction(self):
+        for argument in vector_type_checks:
+            with self.assertRaises(Exception):
+                Block(timestamp, argument, 0)
 
     def test_constructor_null_transaction_list(self):
         with self.assertRaises(Exception):
@@ -56,6 +67,7 @@ class TestBlockClass(unittest.TestCase):
     def test_constructor_incorrect_transaction(self):
         with self.assertRaises(Exception):
             Block(timestamp, incorrect_transaction, 0)
+
 
     # --------------------------------------- #
     # ------------- Mining Tests ------------ #
