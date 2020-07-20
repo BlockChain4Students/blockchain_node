@@ -30,10 +30,18 @@ def get_chain():
 
 @app.route('/transactions/new', methods=['POST'])
 def new_transaction():
-    #TODO input sanitization
     tx_data = request.get_json()
 
     tx_data["timestamp"] = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
+    try:
+        check_transaction_arguments(tx_data["from_address"], tx_data["to_address"], tx_data["amount"])
+    except Exception as e:
+        json_arguments = ["from_address", "to_address", "amount"]
+        for argument in json_arguments:
+            if argument not in tx_data:
+                return "Transaction must have a " + argument
+
+        return str(e), 200
 
     blockchain.create_transaction(tx_data["from_address"], tx_data["to_address"], tx_data["amount"])
     return "Success", 200
@@ -69,6 +77,18 @@ def get_known_peers():
 #@app.route('/add_block', methods=['POST'])
 #def add_and_announce_block():
 
+def check_transaction_arguments(from_address, to_address, amount):
+    if not to_address or not from_address:
+        raise Exception("Transaction must have a from and to destination address")
+
+    # What type should from and to address be? How do we define public keys?
+    # TODO - Add from and to address type checks
+
+    if not type(amount) is float:
+        raise Exception("Transaction amount must be a float value")
+
+    if amount < 0:
+        raise Exception("Transaction amount must be greater or equal than 0")
 
 if __name__ == '__main__':
     from argparse import ArgumentParser
