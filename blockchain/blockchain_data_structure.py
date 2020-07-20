@@ -61,7 +61,7 @@ class Transaction:
 
 class Block:
 
-    def __init__(self, timestamp, transactions, index, previous_hash=""):
+    def __init__(self, timestamp, transactions, index, previous_hash):
         self.check_arguments(timestamp, transactions, index, previous_hash)
         self.timestamp = timestamp
         self.transactions = transactions
@@ -74,7 +74,7 @@ class Block:
         return self.timestamp + self.transactions + "Previous hash: " + self.previousHash + self.currentHash
 
     def check_arguments(self, timestamp, transactions, index, previous_hash):
-        if not timestamp or not transactions:
+        if not timestamp or not transactions or not previous_hash:
             raise Exception("Block must have a timestamp, one or more transactions and the previous block hash")
         # TODO - Timestamp check fails when using datetime.now, find the correct type
         if not isinstance(timestamp, type(datetime.now())):
@@ -87,6 +87,9 @@ class Block:
             raise Exception("Invalid Transactions")
 
         # TODO - Add check for previous hash to be empty only for first block
+
+        if previous_hash == "0" and index != 0:
+            raise Exception("Only genesis block can have an empty previous hash")
 
     def calculate_hash(self):
         b_hash = SHA256.new()
