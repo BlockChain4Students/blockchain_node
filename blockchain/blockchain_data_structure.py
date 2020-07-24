@@ -130,7 +130,7 @@ class Block:
         return json.dumps(self, sort_keys=True).encode('utf-8')
 
 
-class Blockchain:
+class BlockchainInstance:
     def __init__(self, miner_address, node_identifier, host, port):
         self.check_arguments(miner_address, node_identifier, host, port)
 
