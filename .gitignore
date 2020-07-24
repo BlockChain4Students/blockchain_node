@@ -1,1 +1,4 @@
 .idea
+.env
+env_blockchain4students
+*.pem
