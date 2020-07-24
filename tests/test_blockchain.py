@@ -1,6 +1,12 @@
+import sys
 import unittest
+sys.path.append('../blockchain')
 from blockchain.blockchain_data_structure import Blockchain, Transaction
+
+sys.path.append('../crypto')
 from crypto.keygen import generate_key_pair
+
+
 
 # --------------------------------------- #
 # ----------- Variable Values ----------- #

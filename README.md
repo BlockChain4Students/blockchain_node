@@ -3,6 +3,15 @@ This project can be installed with ``pip install . ``
 ## Requirements:
 Python 3.8.3
 
+## Create Venv
+python3 -m pip install --user virtualenv
+sudo apt-get install python3-venv
+python3 -m venv env_blockchain4students
+source env_blockchain4students/bin/activate
+You are now in a virtual env
+
+## Define env vars
+Duplicate the file .env-example, and rename it to .env. Change the variables value accordingly
 ### To install requirements run:
 pip install -r requirements.txt
 
