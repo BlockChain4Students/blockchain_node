@@ -1,12 +1,11 @@
-FROM python:3.8.3
+FROM python:3.8.5
+RUN export PYTHONPATH=.
 
-ADD blockchain/* blockchain/
-ADD test.py .
-ADD node.py .
-ADD requirements.txt .
-
+COPY ./requirements.txt /blockchain4students/requirements.txt
+WORKDIR blockchain4students
 RUN pip install -r requirements.txt
 
-EXPOSE 5000
+COPY * blockchain4students/
+ENTRYPOINT [ "python" ]
 
-CMD [ "python", "test.py", "--port", "5000"]
+CMD [ "blockchain4students/node.py" ]
