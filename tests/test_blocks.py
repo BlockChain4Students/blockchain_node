@@ -11,8 +11,13 @@ from Crypto.Hash import SHA256
 
 node_identifier = "test"
 generate_key_pair(node_identifier)
-from_address = "from_address"
-to_address = "to_address"
+from_hash = SHA256.new()
+from_hash.update("from_address".encode())
+from_address = from_hash.hexdigest()
+
+to_hash = SHA256.new()
+to_hash.update("to_address".encode())
+to_address = to_hash.hexdigest()
 amount = 1.0
 difficulty = 2
 

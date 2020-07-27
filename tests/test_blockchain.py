@@ -5,21 +5,27 @@ from blockchain.blockchain_data_structure import BlockchainInstance, Transaction
 
 sys.path.append('../crypto')
 from crypto.keygen import generate_key_pair
-
-
+from Crypto.Hash import SHA256
 
 # --------------------------------------- #
 # ----------- Variable Values ----------- #
 # --------------------------------------- #
-
-miner_address = "catarina-address"
+hash_function = SHA256.new()
+hash_function.update("catarina-address".encode())
+miner_address = hash_function.hexdigest()
 node_identifier = "test"
 generate_key_pair(node_identifier)
 host = '0.0.0.0'
 port = 5002
 blockchain_address = '{}:{}'.format(host, port)
-from_address = "from_address"
-to_address = "to_address"
+
+from_hash = SHA256.new()
+from_hash.update("from_address".encode())
+from_address = from_hash.hexdigest()
+
+to_hash = SHA256.new()
+to_hash.update("to_address".encode())
+to_address = to_hash.hexdigest()
 amount = 1.0
 peer_node = "localhost:5100"
 
@@ -65,7 +71,7 @@ class TestBlockchainClass(unittest.TestCase):
         self.assertTrue(isinstance(transaction, Transaction))
         self.assertEqual(transaction.amount, 0.0)
         self.assertEqual(transaction.fromAddress, None)
-        self.assertEqual(transaction.toAddress, " ")
+        self.assertEqual(transaction.toAddress, miner_address)
         self.assertEqual(transaction.node_id, node_identifier)
 
     # ------------------------------------- #

@@ -27,8 +27,11 @@ class Transaction:
         if not node_id:
             raise Exception("Transaction must have an associated node id")
 
-        # What type should from and to address be? How do we define public keys?
-        # TODO - Add from and to address type checks
+        if from_address and (not isinstance(from_address, str) or len(from_address) != 64):
+            raise Exception("From address must be a string of length 64 chars")
+
+        if not isinstance(to_address, str) or len(to_address) != 64:
+            raise Exception("To address must be a string of length 64 chars")
 
         if not type(amount) is float:
             raise Exception("Transaction amount must be a float value")
@@ -76,7 +79,7 @@ class Block:
     def check_arguments(self, timestamp, transactions, index, previous_hash):
         if not timestamp or not transactions or not previous_hash:
             raise Exception("Block must have a timestamp, one or more transactions and the previous block hash")
-        # TODO - Timestamp check fails when using datetime.now, find the correct type
+
         if not isinstance(timestamp, type(datetime.now())):
             raise Exception("Timestamp must be a datetime")
 
@@ -85,8 +88,6 @@ class Block:
 
         if not self.has_valid_transactions(transactions):
             raise Exception("Invalid Transactions")
-
-        # TODO - Add check for previous hash to be empty only for first block
 
         if previous_hash == "0" and index != 0:
             raise Exception("Only genesis block can have an empty previous hash")
@@ -171,7 +172,7 @@ class BlockchainInstance:
         # TODO - How to check if a host is valid? Can it be anything other than a string?
 
     def calculate_gen_block(self):
-        gen_block = Block(datetime.now(), Transaction(None, " ", 0.0, self.node_identifier), 0, "0")
+        gen_block = Block(datetime.now(), Transaction(None, self.miner_address, 0.0, self.node_identifier), 0, "0")
         gen_block.set_hash(gen_block.calculate_hash())
         return gen_block
 
@@ -265,9 +266,12 @@ class BlockchainInstance:
 
             for address in response['total_nodes']:
                 # Add and register all peers
-                self.peer_nodes.add(address)
-                requests.post('http://{}/register/node'.format(address),
-                              json={'node_address': '{}'.format(self.address)})
+                try:
+                    requests.post('http://{}/register/node'.format(address),
+                                  json={'node_address': '{}'.format(self.address)})
+                    self.register_node(address)
+                except:
+                    continue
 
             print(self.peer_nodes)
 
