@@ -1,11 +1,21 @@
 FROM python:3.8.5
-RUN export PYTHONPATH=.
 
-COPY ./requirements.txt /blockchain4students/requirements.txt
-WORKDIR blockchain4students
+ENV VIRTUAL_ENV=/opt/venv
+RUN python3 -m venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+#Setting flask env vars
+ENV FLASK_APP=node.py
+ENV FLASK_ENV=development
+ENV node_port 5000
+ENV host 0.0.0.0
+ENV miner_address default_address
+
+# Install dependencies:
+COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-COPY * blockchain4students/
-ENTRYPOINT [ "python" ]
 
-CMD [ "blockchain4students/node.py" ]
+# Copy and run the application:
+COPY . .
+CMD ["sh", "-c", "python3 app.py -p ${node_port} -a ${miner_address} -ho ${host}"]
