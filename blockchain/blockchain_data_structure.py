@@ -273,6 +273,6 @@ class BlockchainInstance:
                 except:
                     continue
 
-            print(self.peer_nodes)
+            return self.peer_nodes
 
 ########################################################################################################################
